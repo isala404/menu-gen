@@ -1,7 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+// For Choreo deployment, use the injected config, otherwise fallback to env var or localhost
+const getApiBaseUrl = () => {
+  // Check if Choreo's config is available
+  if (typeof window !== 'undefined' && window.configs && window.configs.apiUrl) {
+    return `${window.configs.apiUrl}/api`;
+  }
+  // Fallback to environment variable or localhost for development
+  return process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Types
 const MenuStatus = {
