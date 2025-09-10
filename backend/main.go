@@ -1092,11 +1092,11 @@ func isValidImage(data []byte) bool {
 func loadConfig() *Config {
 	config := &Config{
 		Port:                getEnv("PORT", "8080"),
-		DatabaseURL:         getEnv("DATABASE_URL", ""),
-		OpenAIAPIKey:        getEnv("OPENAI_API_KEY", ""),
-		OpenAIServiceURL:    getEnv("OPENAI_SERVICE_URL", "https://api.openai.com/v1"),
-		ReplicateAPIKey:     getEnv("REPLICATE_API_KEY", ""),
-		ReplicateServiceURL: getEnv("REPLICATE_SERVICE_URL", "https://api.replicate.com/v1"),
+		DatabaseURL:         getDatabaseURL(),
+		OpenAIAPIKey:        getOpenAIAPIKey(),
+		OpenAIServiceURL:    getOpenAIServiceURL(),
+		ReplicateAPIKey:     getReplicateAPIKey(),
+		ReplicateServiceURL: getReplicateServiceURL(),
 		MaxImageSize:        10 * 1024 * 1024, // 10MB
 		ProcessingTimeout:   90 * time.Second,
 	}
@@ -1112,6 +1112,63 @@ func loadConfig() *Config {
 	}
 
 	return config
+}
+
+func getDatabaseURL() string {
+	// Check if DATABASE_URL is directly provided (for local development)
+	if databaseURL := getEnv("DATABASE_URL", ""); databaseURL != "" {
+		return databaseURL
+	}
+
+	// Check for Choreo connection environment variables
+	hostname := getEnv("CHOREO_CONNECTION_MENU_BACKEND_DEFAULTDB_HOSTNAME", "")
+	port := getEnv("CHOREO_CONNECTION_MENU_BACKEND_DEFAULTDB_PORT", "")
+	username := getEnv("CHOREO_CONNECTION_MENU_BACKEND_DEFAULTDB_USERNAME", "")
+	password := getEnv("CHOREO_CONNECTION_MENU_BACKEND_DEFAULTDB_PASSWORD", "")
+	database := getEnv("CHOREO_CONNECTION_MENU_BACKEND_DEFAULTDB_DATABASENAME", "")
+
+	if hostname != "" && port != "" && username != "" && password != "" && database != "" {
+		return fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=require", 
+			username, password, hostname, port, database)
+	}
+
+	return ""
+}
+
+func getOpenAIAPIKey() string {
+	// Check for Choreo connection environment variable first
+	if key := getEnv("CHOREO_OPENAI_CONNECTION_OPENAI_API_KEY", ""); key != "" {
+		return key
+	}
+	// Fallback to direct environment variable (for local development)
+	return getEnv("OPENAI_API_KEY", "")
+}
+
+func getOpenAIServiceURL() string {
+	// Check for Choreo connection environment variable first
+	if url := getEnv("CHOREO_OPENAI_CONNECTION_SERVICEURL", ""); url != "" {
+		return url
+	}
+	// Fallback to direct environment variable (for local development)
+	return getEnv("OPENAI_SERVICE_URL", "https://api.openai.com/v1")
+}
+
+func getReplicateAPIKey() string {
+	// Check for Choreo connection environment variable first
+	if key := getEnv("CHOREO_REPLICATE_CONNECTION_APIKEY", ""); key != "" {
+		return key
+	}
+	// Fallback to direct environment variable (for local development)
+	return getEnv("REPLICATE_API_KEY", "")
+}
+
+func getReplicateServiceURL() string {
+	// Check for Choreo connection environment variable first
+	if url := getEnv("CHOREO_REPLICATE_CONNECTION_SERVICEURL", ""); url != "" {
+		return url
+	}
+	// Fallback to direct environment variable (for local development)
+	return getEnv("REPLICATE_SERVICE_URL", "https://api.replicate.com/v1")
 }
 
 func getEnv(key, defaultValue string) string {

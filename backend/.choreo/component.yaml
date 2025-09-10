@@ -22,3 +22,13 @@ endpoints:
     networkVisibilities: 
       - Public
       - Organization
+
+# +optional Dependencies of the component
+dependencies:
+  connectionReferences:
+    - name: connection-menu-backend-defaultdb
+      resourceRef: database:menu-generator-db/defaultdb
+    - name: openai-connection
+      resourceRef: thirdparty:OpenAI/v1
+    - name: replicate-connection
+      resourceRef: thirdparty:Replicate/v1
